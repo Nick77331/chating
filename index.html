@@ -4,36 +4,198 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Football Chat</title>
-<link rel="stylesheet" href="style.css" />
+<style>
+body {
+    background-color: #2e2e2e;
+    font-family: 'Arial', sans-serif;
+    color: #fff;
+    background-image: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1950&q=80');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    margin: 0;
+    padding: 0;
+}
+
+.header {
+    text-align: center;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.5);
+    font-size: 2em;
+    color: #ffcc00;
+    font-family: 'Impact', sans-serif;
+}
+
+/* User and friends setup */
+.username-section, .friends-section {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 10px;
+    background-color: rgba(0,0,0,0.6);
+    border-radius: 10px;
+    text-align: center;
+}
+
+.friends-section h3 {
+    margin-top: 0;
+}
+
+#friendsList {
+    list-style: none;
+    padding: 0;
+    max-height: 150px;
+    overflow-y: auto;
+    margin-top: 10px;
+}
+
+#friendsList li {
+    padding: 5px;
+    border-bottom: 1px solid #ffcc00;
+}
+
+/* Chat styles */
+.chat-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 10px;
+    border: 2px solid #ffcc00;
+    height: 400px;
+    overflow-y: auto;
+}
+
+.message {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
+.user-message {
+    background-color: #4CAF50;
+    color: #fff;
+}
+
+.bot-message {
+    background-color: #ff6600;
+    color: #fff;
+}
+
+.message-input {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    gap: 10px;
+    padding: 10px;
+}
+
+/* Additional styles for responsiveness and aesthetics */
+@media(max-width: 820px){
+    body {
+        font-size: 14px;
+    }
+}
+</style>
 </head>
 <body>
 <div class="header">
     🏈 Welcome to the American Football Chat! 🏈
 </div>
-<div class="chat-container" id="chat">
-    <!-- Chat messages will go here -->
+
+<!-- Username Setup -->
+<div class="username-section">
+    <input type="text" id="usernameInput" placeholder="Enter your username" />
+    <button onclick="setUsername()">Set Username</button>
+    <div id="currentUsername"></div>
 </div>
-<input type="text" id="userInput" placeholder="Type your message..." />
-<button onclick="sendMessage()">Send</button>
+
+<!-- Friends List -->
+<div class="friends-section">
+    <h3>Friends</h3>
+    <input type="text" id="friendInput" placeholder="Add a friend's username" />
+    <button onclick="addFriend()">Add Friend</button>
+    <ul id="friendsList"></ul>
+</div>
+
+<!-- Chat Area -->
+<div class="chat-container" id="chat">
+    <!-- Chat messages will appear here -->
+</div>
+
+<!-- Message Input -->
+<div class="message-input">
+    <input type="text" id="userInput" placeholder="Type your message..." />
+    <button onclick="sendMessage()">Send</button>
+</div>
 
 <script>
+// Variables
+let username = '';
+let friends = [];
+
+// Set username
+function setUsername() {
+    const input = document.getElementById('usernameInput');
+    username = input.value.trim();
+    document.getElementById('currentUsername').textContent = username ? 'Your username: ' + username : 'Please enter a username';
+    input.value = '';
+}
+
+// Add a friend
+function addFriend() {
+    const friendInput = document.getElementById('friendInput');
+    const friendName = friendInput.value.trim();
+    if (friendName && !friends.includes(friendName)) {
+        friends.push(friendName);
+        updateFriendsList();
+        friendInput.value = '';
+    }
+}
+
+// Update friends list display
+function updateFriendsList() {
+    const list = document.getElementById('friendsList');
+    list.innerHTML = '';
+    friends.forEach(friend => {
+        const li = document.createElement('li');
+        li.textContent = friend;
+        list.appendChild(li);
+    });
+}
+
+// Send a message
 function sendMessage() {
     const input = document.getElementById('userInput');
-    const messageText = input.value;
-    if (messageText.trim() === '') return;
+    const messageText = input.value.trim();
+    if (!username) {
+        alert('Please set your username first!');
+        return;
+    }
+    if (messageText === '') return;
 
     const chatBox = document.getElementById('chat');
 
+    // User message
     const userMessage = document.createElement('div');
     userMessage.className = 'message user-message';
-    userMessage.textContent = messageText;
+    userMessage.innerHTML = `<strong>${username}:</strong> ${messageText}`;
     chatBox.appendChild(userMessage);
 
-    // Simulate bot reply
+    // Simulate a reply from a friend or bot
     const botMessage = document.createElement('div');
     botMessage.className = 'message bot-message';
-    botMessage.textContent = 'Football is awesome!';
+
+    // Randomly select a friend to reply or a default message
+    if (friends.length > 0 && Math.random() < 0.5) {
+        const randomFriend = friends[Math.floor(Math.random() * friends.length)];
+        botMessage.innerHTML = `<strong>${randomFriend}:</strong> Nice play!`;
+    } else {
+        botMessage.innerHTML = `<strong>FootballBot:</strong> Keep scoring!`;
+    }
     chatBox.appendChild(botMessage);
+
+    // Scroll to bottom
+    chatBox.scrollTop = chatBox.scrollHeight;
 
     input.value = '';
 }
