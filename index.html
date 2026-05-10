@@ -24,7 +24,22 @@ body {
     font-size: 2em;
     color: #ffcc00;
     font-family: 'Impact', sans-serif;
-    /* Changed text content below, no need to update CSS for this */
+}
+
+/* Sign-up/login section */
+.auth-section {
+    max-width: 600px;
+    margin: 10px auto;
+    padding: 10px;
+    background-color: rgba(0,0,0,0.6);
+    border-radius: 10px;
+    text-align: center;
+}
+
+#welcomeMessage {
+    margin-top: 10px;
+    font-size: 1.2em;
+    color: #fff;
 }
 
 /* User and friends setup */
@@ -89,65 +104,122 @@ body {
     gap: 10px;
     padding: 10px;
 }
-
-/* Additional styles for responsiveness and aesthetics */
-@media(max-width: 820px){
-    body {
-        font-size: 14px;
-    }
-}
 </style>
 </head>
 <body>
+
 <div class="header">
     🏈 Welcome to the Chat! 🏈
 </div>
 
-<!-- Username Setup -->
-<div class="username-section">
-    <input type="text" id="usernameInput" placeholder="Enter your username" />
-    <button onclick="setUsername()">Set Username</button>
-    <div id="currentUsername"></div>
+<!-- Sign-up/Login -->
+<div class="auth-section" id="authSection">
+    <h3>Sign Up / Login</h3>
+    <input type="text" id="signUpName" placeholder="Enter your username" />
+    <button onclick="signUpOrLogin()">Sign Up / Login</button>
+    <div id="welcomeMessage"></div>
 </div>
 
-<!-- Friends List -->
-<div class="friends-section">
-    <h3>Friends</h3>
-    <input type="text" id="friendInput" placeholder="Add a friend's username" />
-    <button onclick="addFriend()">Add Friend</button>
-    <ul id="friendsList"></ul>
-</div>
+<!-- Main app (hidden till login) -->
+<div id="app" style="display:none;">
+  <!-- Username display -->
+  <div class="username-section" id="userSection">
+      <div id="currentUsername"></div>
+  </div>
 
-<!-- Chat Area -->
-<div class="chat-container" id="chat">
-    <!-- Chat messages will appear here -->
-</div>
+  <!-- Friends List -->
+  <div class="friends-section">
+      <h3>Friends</h3>
+      <input type="text" id="friendInput" placeholder="Add a friend's username" />
+      <button onclick="addFriend()">Add Friend</button>
+      <ul id="friendsList"></ul>
+  </div>
 
-<!-- Message Input -->
-<div class="message-input">
-    <input type="text" id="userInput" placeholder="Type your message..." />
-    <button onclick="sendMessage()">Send</button>
+  <!-- Chat Area -->
+  <div class="chat-container" id="chat">
+      <!-- Chat messages will appear here -->
+  </div>
+
+  <!-- Message Input -->
+  <div class="message-input">
+      <input type="text" id="userInput" placeholder="Type your message..." />
+      <button onclick="sendMessage()">Send</button>
+  </div>
 </div>
 
 <script>
-// Variables
+// Load data from localStorage
 let username = '';
 let friends = [];
+let chatHistory = [];
 
-// Set username
-function setUsername() {
-    const input = document.getElementById('usernameInput');
-    username = input.value.trim();
-    document.getElementById('currentUsername').textContent = username ? 'Your username: ' + username : 'Please enter a username';
-    input.value = '';
+// Try to load existing user data
+const storedUser = localStorage.getItem('chatUser');
+const storedFriends = localStorage.getItem('chatFriends');
+const storedChat = localStorage.getItem('chatHistory');
+
+if (storedUser) {
+    username = storedUser;
+}
+if (storedFriends) {
+    friends = JSON.parse(storedFriends);
+}
+if (storedChat) {
+    chatHistory = JSON.parse(storedChat);
 }
 
-// Add a friend
+// Show login prompt if no username
+const authSection = document.getElementById('authSection');
+const appSection = document.getElementById('app');
+
+if (username) {
+    // Already logged in
+    document.getElementById('welcomeMessage').textContent = 'Welcome back, ' + username;
+    showApp();
+} else {
+    // Show login/signup
+    authSection.style.display = 'block';
+}
+
+function showApp() {
+    authSection.style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('currentUsername').textContent = 'Your username: ' + username;
+
+    // Load chat history
+    chatHistory.forEach(msg => {
+        const chatBox = document.getElementById('chat');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message ' + (msg.type === 'user' ? 'user-message' : 'bot-message');
+        msgDiv.innerHTML = `<strong>${msg.sender}:</strong> ${msg.text}`;
+        chatBox.appendChild(msgDiv);
+    });
+    // Scroll to bottom
+    document.getElementById('chat').scrollTop = document.getElementById('chat').scrollHeight;
+}
+
+// Sign-up/login function
+function signUpOrLogin() {
+    const nameInput = document.getElementById('signUpName');
+    const name = nameInput.value.trim();
+    if (name) {
+        username = name;
+        localStorage.setItem('chatUser', username);
+        document.getElementById('welcomeMessage').textContent = 'Welcome, ' + username + '!';
+        showApp();
+        nameInput.value = '';
+    } else {
+        alert('Please enter a username.');
+    }
+}
+
+// Add friend
 function addFriend() {
     const friendInput = document.getElementById('friendInput');
     const friendName = friendInput.value.trim();
     if (friendName && !friends.includes(friendName)) {
         friends.push(friendName);
+        localStorage.setItem('chatFriends', JSON.stringify(friends));
         updateFriendsList();
         friendInput.value = '';
     }
@@ -164,12 +236,12 @@ function updateFriendsList() {
     });
 }
 
-// Send a message
+// Send message
 function sendMessage() {
     const input = document.getElementById('userInput');
     const messageText = input.value.trim();
     if (!username) {
-        alert('Please set your username first!');
+        alert('Please sign up or log in first!');
         return;
     }
     if (messageText === '') return;
@@ -177,29 +249,38 @@ function sendMessage() {
     const chatBox = document.getElementById('chat');
 
     // User message
-    const userMessage = document.createElement('div');
-    userMessage.className = 'message user-message';
-    userMessage.innerHTML = `<strong>${username}:</strong> ${messageText}`;
-    chatBox.appendChild(userMessage);
+    const userMsg = {
+        sender: username,
+        text: messageText,
+        type: 'user'
+    };
+    chatHistory.push(userMsg);
+    localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+    const userDiv = document.createElement('div');
+    userDiv.className = 'message user-message';
+    userDiv.innerHTML = `<strong>${username}:</strong> ${messageText}`;
+    chatBox.appendChild(userDiv);
 
-    // Simulate a reply from a friend or bot
-    const botMessage = document.createElement('div');
-    botMessage.className = 'message bot-message';
-
-    // Randomly select a friend to reply or a default message
-    if (friends.length > 0 && Math.random() < 0.5) {
-        const randomFriend = friends[Math.floor(Math.random() * friends.length)];
-        botMessage.innerHTML = `<strong>${randomFriend}:</strong> Nice play!`;
-    } else {
-        botMessage.innerHTML = `<strong>FootballBot:</strong> Keep scoring!`;
-    }
-    chatBox.appendChild(botMessage);
+    // Simulate a reply
+    const replySender = (friends.length > 0 && Math.random() < 0.5) ? friends[Math.floor(Math.random() * friends.length)] : 'FootballBot';
+    const replyText = replySender === 'FootballBot' ? 'Keep scoring!' : 'Nice play!';
+    const botMsg = {
+        sender: replySender,
+        text: replyText,
+        type: 'bot'
+    };
+    chatHistory.push(botMsg);
+    localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+    const botDiv = document.createElement('div');
+    botDiv.className = 'message bot-message';
+    botDiv.innerHTML = `<strong>${replySender}:</strong> ${replyText}`;
+    chatBox.appendChild(botDiv);
 
     // Scroll to bottom
     chatBox.scrollTop = chatBox.scrollHeight;
-
     input.value = '';
 }
 </script>
+
 </body>
 </html>
