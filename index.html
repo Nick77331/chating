@@ -3,293 +3,40 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Vibrant Gaming Friend Chat</title>
-<style>
-  body {
-    font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #0f0, #00f, #f0f);
-    background-size: 600% 600%;
-    animation: gradient 15s ease infinite;
-    margin: 20px;
-    color: #fff;
-  }
-
-  @keyframes gradient {
-    0% {background-position: 0% 50%;}
-    50% {background-position: 100% 50%;}
-    100% {background-position: 0% 50%;}
-  }
-
-  h2, h3, h4 {
-    text-shadow: 0 0 10px #fff, 0 0 20px #0ff;
-  }
-
-  input[type="text"], input[type="file"] {
-    padding: 8px;
-    margin-right: 10px;
-    border: 2px solid #fff;
-    border-radius: 4px;
-    background-color: #222;
-    color: #0ff;
-  }
-
-  button {
-    padding: 8px 12px;
-    border: 2px solid #fff;
-    border-radius: 4px;
-    background-color: #222;
-    color: #0ff;
-    cursor: pointer;
-    transition: all 0.3s;
-  }
-
-  button:hover {
-    background-color: #0ff;
-    color: #222;
-  }
-
-  #friendList {
-    list-style: none;
-    padding: 0;
-  }
-
-  #friendList li {
-    padding: 4px 8px;
-    margin: 4px 0;
-    border: 1px solid #fff;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-
-  #friendList li:hover {
-    background: #0ff;
-    color: #222;
-  }
-
-  #chatContainer {
-    margin-top: 20px;
-    border: 2px solid #fff;
-    border-radius: 8px;
-    padding: 10px;
-    max-width: 600px;
-    height: 400px;
-    overflow-y: auto;
-    background: #111;
-  }
-
-  #messages {
-    display: flex;
-    flex-direction: column;
-  }
-
-  #messages div {
-    margin: 4px 0;
-    padding: 8px;
-    border-radius: 4px;
-    background-color: #222;
-    border: 1px solid #fff;
-  }
-
-  #messages img {
-    max-width: 200px;
-    margin-top: 5px;
-    border: 2px solid #0ff;
-    border-radius: 4px;
-  }
-
-  #sendArea {
-    margin-top: 10px;
-    display: flex;
-    align-items: center;
-  }
-
-  #messageInput {
-    flex: 1;
-    padding: 8px;
-    border: 2px solid #fff;
-    border-radius: 4px;
-    background-color: #222;
-    color: #0ff;
-    margin-right: 10px;
-  }
-</style>
+<title>Football Chat</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<h2>Vibrant Gaming Friend Chat</h2>
-
-<div>
-  <label for="name">Enter your name:</label>
-  <input type="text" id="name" placeholder="Your Name" />
+<div class="header">
+    🏈 Welcome to the American Football Chat! 🏈
 </div>
-
-<div>
-  <label for="friend">Add a friend:</label>
-  <input type="text" id="friend" placeholder="Friend's Name" />
-  <button onclick="addFriend()">Add Friend</button>
+<div class="chat-container" id="chat">
+    <!-- Chat messages will go here -->
 </div>
-
-<h3>Hello, <span id="userName"></span>!</h3>
-<h4>Your Friends:</h4>
-<ul id="friendList"></ul>
-
-<h4>Select a friend to chat:</h4>
-<div id="chatSection" style="display:none;">
-  <h4>Chat with <span id="currentFriend"></span></h4>
-  <div id="chatContainer">
-    <div id="messages"></div>
-  </div>
-  <div id="sendArea">
-    <input type="text" id="messageInput" placeholder="Type a message" />
-    <button onclick="sendMessage()">Send</button>
-    <input type="file" id="imageInput" accept="image/*" onchange="sendImage()" style="margin-left:10px;" />
-  </div>
-</div>
+<input type="text" id="userInput" placeholder="Type your message..." />
+<button onclick="sendMessage()">Send</button>
 
 <script>
-  const userNameSpan = document.getElementById('userName');
-  const nameInput = document.getElementById('name');
-  const friendInput = document.getElementById('friend');
-  const friendListUl = document.getElementById('friendList');
-  const currentFriendSpan = document.getElementById('currentFriend');
-  const chatSection = document.getElementById('chatSection');
-  const messagesDiv = document.getElementById('messages');
-  const messageInput = document.getElementById('messageInput');
-  const imageInput = document.getElementById('imageInput');
+function sendMessage() {
+    const input = document.getElementById('userInput');
+    const messageText = input.value;
+    if (messageText.trim() === '') return;
 
-  let userName = '';
-  let friends = [];
-  let currentFriend = '';
+    const chatBox = document.getElementById('chat');
 
-  // Load name and friends
-  window.onload = () => {
-    const savedName = localStorage.getItem('userName');
-    if (savedName) {
-      userName = savedName;
-      nameInput.value = userName;
-      userNameSpan.textContent = userName;
-    }
-    loadFriends();
-  };
+    const userMessage = document.createElement('div');
+    userMessage.className = 'message user-message';
+    userMessage.textContent = messageText;
+    chatBox.appendChild(userMessage);
 
-  nameInput.addEventListener('change', () => {
-    userName = nameInput.value.trim();
-    userNameSpan.textContent = userName;
-    localStorage.setItem('userName', userName);
-  });
+    // Simulate bot reply
+    const botMessage = document.createElement('div');
+    botMessage.className = 'message bot-message';
+    botMessage.textContent = 'Football is awesome!';
+    chatBox.appendChild(botMessage);
 
-  function loadFriends() {
-    friends = JSON.parse(localStorage.getItem('friends')) || [];
-    renderFriends();
-  }
-
-  function saveFriends() {
-    localStorage.setItem('friends', JSON.stringify(friends));
-  }
-
-  function renderFriends() {
-    friendListUl.innerHTML = '';
-    friends.forEach(friend => {
-      const li = document.createElement('li');
-      li.textContent = friend;
-      li.onclick = () => selectFriend(friend);
-      friendListUl.appendChild(li);
-    });
-  }
-
-  function addFriend() {
-    const friendName = friendInput.value.trim();
-    if (friendName && !friends.includes(friendName) && friendName !== userName) {
-      friends.push(friendName);
-      saveFriends();
-      renderFriends();
-      friendInput.value = '';
-    } else if (friends.includes(friendName)){
-      alert('This friend is already added.');
-    } else {
-      alert('Please enter a valid friend name.');
-    }
-  }
-
-  function selectFriend(friend) {
-    currentFriend = friend;
-    document.getElementById('currentFriend').textContent = friend;
-    chatSection.style.display = 'block';
-    loadChat();
-  }
-
-  function loadChat() {
-    const chatKey = chatKeyForFriend(currentFriend);
-    const chatHistory = JSON.parse(localStorage.getItem(chatKey)) || [];
-    messagesDiv.innerHTML = '';
-    chatHistory.forEach(msg => {
-      addMessageToChat(msg.sender, msg.text, msg.isImage);
-    });
-  }
-
-  function chatKeyForFriend(friend) {
-    const names = [userName, friend].sort();
-    return `chat_${names[0]}_${names[1]}`;
-  }
-
-  function sendMessage() {
-    const msg = messageInput.value.trim();
-    if (msg && currentFriend) {
-      saveMessage(currentFriend, msg, false);
-      addMessageToChat(userName, msg, false);
-      messageInput.value = '';
-
-      // Auto-reply
-      setTimeout(() => {
-        const replyMsg = `Reply from ${currentFriend}`;
-        saveMessage(currentFriend, replyMsg, false);
-        addMessageToChat(currentFriend, replyMsg, false);
-      }, 1000);
-    }
-  }
-
-  function sendImage() {
-    const file = document.getElementById('imageInput').files[0];
-    if (file && currentFriend) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        saveMessage(currentFriend, reader.result, true);
-        addMessageToChat(userName, reader.result, true);
-        // Reset input
-        document.getElementById('imageInput').value = '';
-
-        // Auto-reply with an image (optional)
-        setTimeout(() => {
-          const replyImg = 'https://via.placeholder.com/150/00ffff/000000?text=Reply'; // Placeholder reply image
-          saveMessage(currentFriend, replyImg, true);
-          addMessageToChat(currentFriend, replyImg, true);
-        }, 1000);
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-
-  function saveMessage(friend, text, isImage) {
-    const chatKey = chatKeyForFriend(friend);
-    const chatHistory = JSON.parse(localStorage.getItem(chatKey)) || [];
-    chatHistory.push({ sender: userName, text: text, isImage: isImage });
-    localStorage.setItem(chatKey, JSON.stringify(chatHistory));
-  }
-
-  function addMessageToChat(sender, text, isImage) {
-    const msgDiv = document.createElement('div');
-    if (isImage) {
-      const img = document.createElement('img');
-      img.src = text;
-      msgDiv.innerHTML = `<strong>${sender}:</strong><br/>`;
-      msgDiv.appendChild(img);
-    } else {
-      msgDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
-    }
-    messagesDiv.appendChild(msgDiv);
-    // Scroll to bottom
-    document.getElementById('chatContainer').scrollTop = document.getElementById('chatContainer').scrollHeight;
-  }
+    input.value = '';
+}
 </script>
 </body>
 </html>
